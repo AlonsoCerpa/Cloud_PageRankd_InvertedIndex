@@ -7,15 +7,15 @@ import string
 import re
 from google.cloud import storage
 
+bucket_name = "datos-trabajo-page-rank-inverted-index"
+parent_dir_txts_in = "txt_with_links"
+
 def download_blob(bucket_name, source_blob_name, destination_file_name):
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(source_blob_name)
     blob.download_to_filename(destination_file_name)
-
-bucket_name = "datos-trabajo-page-rank-inverted-index"
-parent_dir_txts_in = "txts_prueba_links"
 
 for line in sys.stdin:
     line = line.strip()

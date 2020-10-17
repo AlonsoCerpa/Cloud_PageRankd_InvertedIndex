@@ -5,12 +5,14 @@ import random
 import numpy as np
 from google.cloud import storage
 
-def download_blob(bucket_name, source_blob_name, destination_file_name):
-    """Downloads a blob from the bucket."""
-    # bucket_name = "your-bucket-name"
-    # source_blob_name = "storage-object-name"
-    # destination_file_name = "local/path/to/file"
+bucket_name = "datos-trabajo-page-rank-inverted-index"
+parent_dir_txts_in = "txt"
+parent_dir_txts_out = "txt_with_links"
+name_file_with_names = "./name_files.txt"
+mean_links_out = 30
+std_links_oout = 10
 
+def download_blob(bucket_name, source_blob_name, destination_file_name):
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
@@ -18,31 +20,17 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
     blob.download_to_filename(destination_file_name)
 
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
-    """Uploads a file to the bucket."""
-    # bucket_name = "your-bucket-name"
-    # source_file_name = "local/path/to/file"
-    # destination_blob_name = "storage-object-name"
-
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
 
     blob.upload_from_filename(source_file_name)
 
-mean_links_out = 30
-std_links_oout = 10
-
-name_file_with_names = "./name_files.txt"
-#name_file_with_names = sys.argv[1]
 file1 = open(name_file_with_names, "r")
 names_files = file1.readlines()
 file1.close()
 names_files = [x.strip() for x in names_files] 
 length_names_files = len(names_files)
-#parent_dir_txts = sys.argv[2]
-bucket_name = "datos-trabajo-page-rank-inverted-index"
-parent_dir_txts_in = "txts_prueba"
-parent_dir_txts_out = "txts_prueba_links"
 
 for line in sys.stdin:
     line = line.strip()
@@ -70,4 +58,3 @@ for line in sys.stdin:
     file_write.close()
     cloud_path_file_out = parent_dir_txts_out + "/" + line
     upload_blob(bucket_name, local_path_file_in, cloud_path_file_out)
-    

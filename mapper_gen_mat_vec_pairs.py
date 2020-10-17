@@ -5,19 +5,19 @@ import random
 import numpy as np
 from google.cloud import storage
 
-def download_blob(bucket_name, source_blob_name, destination_file_name):
-    """Downloads a blob from the bucket."""
-    # bucket_name = "your-bucket-name"
-    # source_blob_name = "storage-object-name"
-    # destination_file_name = "local/path/to/file"
+name_file_with_names = "./name_files.txt"
+bucket_name = "datos-trabajo-page-rank-inverted-index"
+parent_dir_txts_in = "txt_with_links"
+num_files_to_rank = 200
+d = 0.85
 
+def download_blob(bucket_name, source_blob_name, destination_file_name):
     storage_client = storage.Client()
 
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(source_blob_name)
     blob.download_to_filename(destination_file_name)
 
-name_file_with_names = "./name_files.txt"
 file1 = open(name_file_with_names, "r")
 names_files = file1.readlines()
 file1.close()
@@ -28,8 +28,7 @@ for name_file in names_files:
     dict_name_files[name_file] = idx_name_file
     idx_name_file += 1
 
-bucket_name = "datos-trabajo-page-rank-inverted-index"
-parent_dir_txts_in = "txts_prueba_links"
+v_value = 1.0/num_files_to_rank
 
 for line in sys.stdin:
     line = line.strip()
@@ -46,6 +45,7 @@ for line in sys.stdin:
     start_idx = 0
     idx_found = data.find("LINK_A_OTRO_ARCHIVO=", start_idx)
     idx_source = dict_name_files[line]
+    list_targets = set()
     
     end_file = False
     while idx_found != -1 and end_file == False:
@@ -53,10 +53,20 @@ for line in sys.stdin:
         idx_end_name_file = data.find(".txt", idx_start_name_file) + 4
         name_file_found = data[idx_start_name_file:idx_end_name_file]
         idx_target = dict_name_files[name_file_found]
-        print("%d %d\t1" % (idx_source, idx_target))
+        if idx_source != idx_target:
+            list_targets.add(idx_target)
         start_idx = idx_end_name_file
         if start_idx >= length_file:
             end_file = True
         else:
             idx_found = data.find("LINK_A_OTRO_ARCHIVO=", start_idx)
+
+    col_M = np.zeros((num_files_to_rank))
+    val_M = 1.0/len(list_targets)
+    for idx in list_targets:
+        col_M[idx] = val_M
     
+    print("%d %f\t" % (idx_source, v_value), end="")
+    for i in range(num_files_to_rank):
+        print("%d %f " % (i, d*col_M[i] + (1-d)/num_files_to_rank), end="")
+    print()
