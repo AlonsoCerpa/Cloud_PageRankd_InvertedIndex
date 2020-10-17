@@ -1,0 +1,17 @@
+1. Crear un cluster
+gcloud dataproc clusters create cluster-prueba2 --region us-east1 --metadata 'PIP_PACKAGES=google-cloud-storage' --initialization-actions gs://goog-dataproc-initialization-actions-us-east1/python/pip-install.sh --subnet default --zone us-east1-c --master-machine-type n1-standard-1 --master-boot-disk-size 20 --num-workers 3 --worker-machine-type n1-standard-2 --worker-boot-disk-size 20 --image-version 1.5-ubuntu18 --optional-components ANACONDA --project project2-292316
+2. SSH al master del cluster
+3. MapRed 1: Agregar enlaces simulados a los archivos de texto
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=0 -files gs://datos-trabajo-page-rank-inverted-index/mapper_add_links.py,gs://datos-trabajo-page-rank-inverted-index/reducer_empty.py,gs://datos-trabajo-page-rank-inverted-index/input/name_files.txt -mapper mapper_add_links.py -reducer reducer_empty.py -input gs://datos-trabajo-page-rank-inverted-index/input -output gs://datos-trabajo-page-rank-inverted-index/empty_output
+4. MapRed 2: Generar pares de la matriz de adyacencia y el vector page-rank
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=0 -files gs://datos-trabajo-page-rank-inverted-index/mapper_gen_mat_vec_pairs.py,gs://datos-trabajo-page-rank-inverted-index/reducer_empty.py,gs://datos-trabajo-page-rank-inverted-index/input/name_files.txt -mapper mapper_gen_mat_vec_pairs.py -reducer reducer_empty.py -input gs://datos-trabajo-page-rank-inverted-index/input -output gs://datos-trabajo-page-rank-inverted-index/output_matrix_vec1
+5. Descargar el archivo concat_file_vector_page_rank.py al master del cluster
+gsutil cp gs://datos-trabajo-page-rank-inverted-index/concat_files_vector_page_rank.py concat_files_vector_page_rank.py
+6. Descargar el script de bash run_page_rank.sh al master del cluster
+gsutil cp gs://datos-trabajo-page-rank-inverted-index/run_page_rank.sh run_page_rank.sh
+7. Dar permiso de ejecucion al script run_page_rank.sh
+chmod +x run_page_rank.sh
+8. Ejecutar el script run_page_rank.sh
+./run_page_rank.sh
+9. MapRed 5: Crear el indice invertido
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=0 -files gs://datos-trabajo-page-rank-inverted-index/mapper_inverted_index.py,gs://datos-trabajo-page-rank-inverted-index/reducer_empty.py -mapper mapper_inverted_index.py -reducer reducer_empty.py -input gs://datos-trabajo-page-rank-inverted-index/input -output gs://datos-trabajo-page-rank-inverted-index/output_inverted_index

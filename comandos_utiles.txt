@@ -1,0 +1,35 @@
+CREACIÓN DE CLÚSTER:
+gcloud dataproc clusters create cluster-prueba2 --region us-east1 --metadata 'PIP_PACKAGES=google-cloud-storage==1.13.0' --initialization-actions gs://goog-dataproc-initialization-actions-us-east1/python/pip-install.sh --subnet default --zone us-east1-c --master-machine-type n1-standard-1 --master-boot-disk-size 15 --num-workers 2 --worker-machine-type n1-standard-1 --worker-boot-disk-size 15 --image-version 1.4-debian10 --project project2-292316
+gcloud dataproc clusters create cluster-prueba2 --region us-east1 --metadata 'CONDA_PACKAGES=google-cloud-storage' --initialization-actions gs://goog-dataproc-initialization-actions-us-east1/python/conda-install.sh --subnet default --zone us-east1-c --master-machine-type n1-standard-1 --master-boot-disk-size 15 --num-workers 2 --worker-machine-type n1-standard-1 --worker-boot-disk-size 15 --image-version 1.4-debian10 --project project2-292316
+gcloud dataproc clusters create cluster-prueba2 --region us-east1 --metadata 'PIP_PACKAGES=google-cloud-storage' --initialization-actions gs://goog-dataproc-initialization-actions-us-east1/python/pip-install.sh --subnet default --zone us-east1-c --master-machine-type n1-standard-1 --master-boot-disk-size 20 --num-workers 2 --worker-machine-type n1-standard-1 --worker-boot-disk-size 20 --image-version 1.5-ubuntu18 --optional-components ANACONDA --project project2-292316
+gcloud dataproc clusters create cluster-prueba2 --region us-east1 --metadata 'PIP_PACKAGES=google-cloud-storage' --initialization-actions gs://goog-dataproc-initialization-actions-us-east1/python/pip-install.sh --subnet default --zone us-east1-c --master-machine-type n1-standard-1 --master-boot-disk-size 20 --num-workers 3 --worker-machine-type n1-standard-2 --worker-boot-disk-size 20 --image-version 1.5-ubuntu18 --optional-components ANACONDA --project project2-292316
+
+HDFS:
+hdfs dfs -ls /input
+
+HADOOP:
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-streaming.jar -D mapred.reduce.tasks=1 -files gs://datos-trabajo-page-rank-inverted-index/mapper_add_links.py,gs://datos-trabajo-page-rank-inverted-index/reducer_wordcount.py,gs://datos-trabajo-page-rank-inverted-index/input/name_files.txt -mapper mapper_add_links.py -reducer reducer_wordcount.py -input gs://datos-trabajo-page-rank-inverted-index/input -output gs://datos-trabajo-page-rank-inverted-index/salida_vacia
+
+GCLOUD - ENVIAR TAREA A CLÚSTER:
+gcloud dataproc jobs submit pyspark check_pygcloud dataproc jobs submit pyspark check_python_env.py --cluster=cluster-prueba2 --region=us-east1 -- numpy google-cloud-storage
+
+GSUTIL - SUBIR A LA NUBE:
+gsutil cp mapper_add_links.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp mapper_gen_mat_vec_pairs.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp mapper_mat_vec_mult.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp reducer_mat_vec_mult.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp mapper_inverted_index.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp reducer_empty.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp concat_files_vector_page_rank.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp mapper_update_mat_vec_pairs.py gs://datos-trabajo-page-rank-inverted-index
+gsutil cp run_page_rank.sh gs://datos-trabajo-page-rank-inverted-index
+
+GSUTIL - BAJAR DESDE LA NUBE:
+gsutil cp gs://datos-trabajo-page-rank-inverted-index/concat_files_vector_page_rank.py concat_files_vector_page_rank.py
+gsutil cp gs://datos-trabajo-page-rank-inverted-index/run_page_rank.sh run_page_rank.sh
+gsutil -m cp -r gs://datos-trabajo-page-rank-inverted-index/output_inverted_index output_inverted_index
+
+GSUTIL - ELIMINAR:
+gsutil -m rm -r gs://datos-trabajo-page-rank-inverted-index/output_matrix_vec
+gsutil -m rm -r gs://datos-trabajo-page-rank-inverted-index/output_matrix_vec2
+gsutil -m rm -r gs://datos-trabajo-page-rank-inverted-index/output_page_rank
