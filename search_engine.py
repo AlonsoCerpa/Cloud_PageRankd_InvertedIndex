@@ -6,10 +6,13 @@ from PyQt5.QtCore import QSize
 from os import listdir
 from os.path import isfile, join
 import collections
+from collections import OrderedDict 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
+        self.num_consulta = 0
+        self.num_max_results = 15
         self.inverted_index = {}
         self.namefile_idx = {}
         self.dict_vec_pr = {}
@@ -68,26 +71,23 @@ class MainWindow(QMainWindow):
             self.dict_vec_pr[idx] = value_vec
 
     def clickMethod(self):
-        num_max_results = 15
-        count = 0
         input_line = self.line.text()
+        print("Consulta " + str(self.num_consulta) + ": " + input_line)
+        self.num_consulta += 1
         input_words = input_line.split()
-        result = []
+        results = {}
         for word in input_words:
             res_inv_idx = self.inverted_index.get(word)
             if res_inv_idx != None:
-                list_sorted_pr_namefile = []
                 for namefile in res_inv_idx:
                     idx_namefile = self.namefile_idx[namefile]
-                    list_sorted_pr_namefile.append((self.dict_vec_pr[idx_namefile], namefile))
-                list_sorted_pr_namefile.sort(key=lambda tup: tup[0], reverse=True)
-                i = 0
-                while count < num_max_results:
-                    print(list_sorted_pr_namefile[i][1], list_sorted_pr_namefile[i][0])
-                    i += 1
-                    count += 1
-                if count >= num_max_results:
-                    break
+                    page_rank = self.dict_vec_pr[idx_namefile]
+                    results[namefile] = page_rank
+        results = [(k, v) for k, v in sorted(results.items(), key=lambda item: item[1], reverse=True)]
+        i = 0
+        while i < len(results) and i < self.num_max_results:
+            print(i, results[i][0], results[i][1])
+            i += 1
         print()
 
 if __name__ == "__main__":
